@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     application
     kotlin("jvm") version "1.4.32"
@@ -28,10 +30,10 @@ application {
 }
 
 val platform = when {
-    org.gradle.internal.os.OperatingSystem.current().isWindows -> {
+    OperatingSystem.current().isWindows -> {
         "win"
     }
-    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> {
+    OperatingSystem.current().isMacOsX -> {
         "mac"
     }
     else -> {
@@ -61,16 +63,23 @@ jlink {
         }
 
         when {
-            org.gradle.internal.os.OperatingSystem.current().isWindows -> {
+            OperatingSystem.current().isWindows -> {
                 icon = "src/main/resources/application.ico"
                 installerOptions =
                     listOf("--win-dir-chooser", "--win-menu", "--win-shortcut", "--install-dir", "Shimmer")
             }
-            org.gradle.internal.os.OperatingSystem.current().isMacOsX -> {
+            OperatingSystem.current().isMacOsX -> {
                 icon = "src/main/resources/application.icns"
             }
             else -> {
-                installerType = "deb"
+                icon = "src/main/resources/application.png"
+                installerOptions = listOf(
+                    "--linux-deb-maintainer",
+                    "icuxika@outlook.com",
+                    "--linux-menu-group",
+                    application.applicationName,
+                    "--linux-shortcut"
+                )
             }
         }
     }
@@ -105,8 +114,20 @@ tasks.register<Copy>("copyDependencies") {
 }
 
 tasks.register<Exec>("package2Image") {
-    println(application.applicationDefaultJvmArgs.joinToString(separator = ","))
     dependsOn("build", "copyDependencies")
+
+    val iconPath = when {
+        OperatingSystem.current().isWindows -> {
+            "$projectDir/src/main/resources/application.ico"
+        }
+        OperatingSystem.current().isMacOsX -> {
+            "$projectDir/src/main/resources/application.icns"
+        }
+        else -> {
+            "$projectDir/src/main/resources/application.png"
+        }
+    }
+
     commandLine("jpackage")
     args(
         "-n",
@@ -114,15 +135,7 @@ tasks.register<Exec>("package2Image") {
         "-t",
         "app-image",
         "--java-options",
-        "-XX:+UseZGC",
-        "--java-options",
-        "-XX:+ShowCodeDetailsInExceptionMessages",
-        "--java-options",
-        "-Dsun.java2d.opengl=true",
-        "--java-options",
-        "-Dhttps.protocols=TLSv1.1,TLSv1.2",
-        "--java-options",
-        "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior=com.jfoenix",
+        application.applicationDefaultJvmArgs.joinToString(separator = " "),
         "-p",
         "$buildDir/modules" + File.pathSeparator + "$buildDir/libs",
         "-d",
@@ -130,7 +143,7 @@ tasks.register<Exec>("package2Image") {
         "-m",
         "${application.mainModule.get()}/${application.mainClass.get()}",
         "--icon",
-        if (platform == "mac") "$projectDir/src/main/resources/application.icns" else "$projectDir/src/main/resources/application.ico",
+        iconPath,
         "--app-version",
         "$version"
     )
@@ -138,20 +151,38 @@ tasks.register<Exec>("package2Image") {
 
 tasks.register<Exec>("package2Installer") {
     dependsOn("build", "copyDependencies")
-    commandLine("jpackage")
-    args(
+
+    val installerType = when {
+        OperatingSystem.current().isWindows -> {
+            "msi"
+        }
+        OperatingSystem.current().isMacOsX -> {
+            "dmg"
+        }
+        else -> {
+            "deb"
+        }
+    }
+
+    val iconPath = when {
+        OperatingSystem.current().isWindows -> {
+            "$projectDir/src/main/resources/application.ico"
+        }
+        OperatingSystem.current().isMacOsX -> {
+            "$projectDir/src/main/resources/application.icns"
+        }
+        else -> {
+            "$projectDir/src/main/resources/application.png"
+        }
+    }
+
+    val argsList = arrayListOf(
         "-n",
         application.applicationName,
+        "-t",
+        installerType,
         "--java-options",
-        "-XX:+UseZGC",
-        "--java-options",
-        "-XX:+ShowCodeDetailsInExceptionMessages",
-        "--java-options",
-        "-Dsun.java2d.opengl=true",
-        "--java-options",
-        "-Dhttps.protocols=TLSv1.1,TLSv1.2",
-        "--java-options",
-        "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior=com.jfoenix",
+        application.applicationDefaultJvmArgs.joinToString(separator = " "),
         "-p",
         "$buildDir/modules" + File.pathSeparator + "$buildDir/libs",
         "-d",
@@ -159,8 +190,35 @@ tasks.register<Exec>("package2Installer") {
         "-m",
         "${application.mainModule.get()}/${application.mainClass.get()}",
         "--icon",
-        if (platform == "mac") "$projectDir/src/main/resources/application.icns" else "$projectDir/src/main/resources/application.ico",
+        iconPath,
         "--app-version",
         "$version"
     )
+
+    val winInstallerOptionList = listOf(
+        "--win-dir-chooser",
+        "--win-menu",
+        "--win-shortcut",
+        "--win-menu-group",
+        application.applicationName
+    )
+
+    val linuxInstallerOptionList = listOf(
+        "--linux-deb-maintainer",
+        "icuxika@outlook.com",
+        "--linux-menu-group",
+        application.applicationName,
+        "--linux-shortcut"
+    )
+
+    if (OperatingSystem.current().isWindows) {
+        argsList.addAll(winInstallerOptionList)
+    }
+
+    if (OperatingSystem.current().isLinux) {
+        argsList.addAll(linuxInstallerOptionList)
+    }
+
+    commandLine("jpackage")
+    args(argsList)
 }
