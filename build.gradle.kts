@@ -3,7 +3,7 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     application
     kotlin("jvm") version "1.4.32"
-    id("org.beryx.jlink") version "2.23.4"
+    id("org.beryx.jlink") version "2.23.7"
 }
 
 group = "com.icuxika"
@@ -91,6 +91,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(kotlin("reflect"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 
