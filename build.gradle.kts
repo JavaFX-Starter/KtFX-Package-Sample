@@ -2,8 +2,8 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
     application
-    kotlin("jvm") version "1.4.32"
-    id("org.beryx.jlink") version "2.23.4"
+    kotlin("jvm") version "1.5.31"
+    id("org.beryx.jlink") version "2.23.7"
 }
 
 group = "com.icuxika"
@@ -11,7 +11,7 @@ version = "1.0.0"
 
 val compileKotlin: org.jetbrains.kotlin.gradle.tasks.KotlinCompile by tasks
 val compileJava: JavaCompile by tasks
-compileJava.destinationDir = compileKotlin.destinationDir
+compileKotlin.destinationDirectory.set(compileJava.destinationDirectory)
 
 application {
     applicationName = "JavaFXSample"
@@ -29,6 +29,7 @@ application {
     )
 }
 
+// 获取平台
 val platform = when {
     OperatingSystem.current().isWindows -> {
         "win"
@@ -40,6 +41,9 @@ val platform = when {
         "linux"
     }
 }
+
+// 定义JavaFX版本
+val javaFXVersion = "17.0.0.1"
 
 jlink {
     options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
@@ -91,16 +95,16 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 
-    implementation("org.openjfx:javafx-base:16:${platform}")
-    implementation("org.openjfx:javafx-controls:16:${platform}")
-    implementation("org.openjfx:javafx-graphics:16:${platform}")
-    implementation("org.openjfx:javafx-fxml:16:${platform}")
-    implementation("org.openjfx:javafx-swing:16:${platform}")
-    implementation("org.openjfx:javafx-media:16:${platform}")
-    implementation("org.openjfx:javafx-web:16:${platform}")
+    implementation("org.openjfx:javafx-base:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-controls:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-graphics:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-fxml:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-swing:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-media:${javaFXVersion}:${platform}")
+    implementation("org.openjfx:javafx-web:${javaFXVersion}:${platform}")
     implementation("com.jfoenix:jfoenix:9.0.10")
 }
 
