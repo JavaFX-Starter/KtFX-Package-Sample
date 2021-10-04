@@ -25,6 +25,7 @@ application {
         "-Dsun.java2d.opengl=true",
         // 不添加此参数，打包成exe后，https协议的网络图片资源无法加载
         "-Dhttps.protocols=TLSv1.1,TLSv1.2",
+        "--add-exports=javafx.controls/com.sun.javafx.scene.control=com.jfoenix",
         "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior=com.jfoenix"
     )
 }

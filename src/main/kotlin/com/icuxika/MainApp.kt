@@ -6,6 +6,7 @@ import javafx.application.Application
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Insets
 import javafx.scene.Scene
+import javafx.scene.control.Tab
 import javafx.scene.layout.Background
 import javafx.scene.layout.BackgroundFill
 import javafx.scene.layout.CornerRadii
@@ -21,14 +22,16 @@ class MainApp : Application() {
         primaryStage?.let { stage ->
             val jfxTabPane = JFXTabPane()
 
-            val buttonNameProperty = SimpleStringProperty("Hello, world")
+            val buttonNameProperty = SimpleStringProperty(Info.name)
             val button = JFXButton().apply {
                 textProperty().bind(buttonNameProperty)
                 buttonType = JFXButton.ButtonType.RAISED
                 textFill = Color.WHITE
                 background = Background(BackgroundFill(Color.DODGERBLUE, CornerRadii(4.0), Insets.EMPTY))
             }
-
+            jfxTabPane.tabs.add(Tab(Info.name).apply {
+                content = button
+            })
             stage.scene = Scene(jfxTabPane, 600.0, 400.0)
             stage.show()
         }
